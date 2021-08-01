@@ -1,1 +1,4 @@
 .idea
+example/terraform.tfvars
+.terraform
+node_modules

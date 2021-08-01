@@ -2,10 +2,8 @@ data "archive_file" "lambda_source" {
   type = "zip"
 
   source_dir  = "${path.module}/lambda-source"
-  output_path = "${path.module}/lambda-source.zip"
+  output_path = "${path.module}/lambda-source/lambda-source.zip"
 }
-
-
 
 resource "aws_lambda_function" "pardot_form_handler" {
   function_name = var.function_name

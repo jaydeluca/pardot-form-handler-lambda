@@ -17,3 +17,8 @@ resource "aws_iam_role" "pardot_form_handler_role" {
 }
 EOF
 }
+
+resource "aws_iam_role_policy_attachment" "lambda_policy" {
+  role       = aws_iam_role.pardot_form_handler_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+}

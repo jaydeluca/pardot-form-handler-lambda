@@ -4,6 +4,11 @@ variable "aws_region" {
   default     = "us-east-1"
 }
 
+variable "aws_account" {
+  description = "AWS Account ID"
+  type        = string
+}
+
 variable "function_name" {
   description = "Name of the lambda function"
   type        = string

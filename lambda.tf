@@ -1,4 +1,11 @@
-# Lambda
+# S3 for storing lambda
+resource "aws_s3_bucket" "pardot_form_handler_lambda" {
+  bucket = "${var.function_name}-lambda"
+
+  acl           = "private"
+  force_destroy = true
+}
+
 data "archive_file" "lambda_source" {
   type = "zip"
 
@@ -6,25 +13,39 @@ data "archive_file" "lambda_source" {
   output_path = "${path.module}/lambda-source/lambda-source.zip"
 }
 
+resource "aws_s3_bucket_object" "pardot_lambda_source_object" {
+  bucket = aws_s3_bucket.pardot_form_handler_lambda.id
+
+  key    = "lambda-source.zip"
+  source = data.archive_file.lambda_source.output_path
+
+  etag = filemd5(data.archive_file.lambda_source.output_path)
+}
+
+# Lambda
 resource "aws_lambda_function" "pardot_form_handler" {
   function_name = var.function_name
 
+  s3_bucket = aws_s3_bucket.pardot_form_handler_lambda.id
+  s3_key    = aws_s3_bucket_object.pardot_lambda_source_object.key
+
   role             = aws_iam_role.pardot_form_handler_role.arn
-  handler          = "index.test"
+  handler          = "index.handler"
   runtime          = "nodejs14.x"
   source_code_hash = data.archive_file.lambda_source.output_base64sha256
 
   environment {
     variables = {
       PARDOT_FORM_HANDLER_URL = var.function_name,
-      RECAPTCHA_SECRET = var.google_recaptcha_secret,
-      REDIRECT_URL = var.completion_redirect_url
+      RECAPTCHA_SECRET        = var.google_recaptcha_secret,
+      REDIRECT_URL            = var.completion_redirect_url
     }
   }
 }
 
 
 # API Gateway
+
 resource "aws_lambda_permission" "api_gw" {
   statement_id  = "AllowExecutionFromAPIGateway"
   action        = "lambda:InvokeFunction"
@@ -32,11 +53,18 @@ resource "aws_lambda_permission" "api_gw" {
   principal     = "apigateway.amazonaws.com"
 
   source_arn = "${aws_apigatewayv2_api.lambda.execution_arn}/*/*"
+
 }
 
 resource "aws_apigatewayv2_api" "lambda" {
   name          = "pardot_lambda_gateway"
   protocol_type = "HTTP"
+
+  target = aws_lambda_function.pardot_form_handler.arn
+
+  cors_configuration {
+    allow_origins = ["*"]
+  }
 }
 
 resource "aws_apigatewayv2_stage" "lambda" {
@@ -71,6 +99,7 @@ resource "aws_apigatewayv2_integration" "pardot_form_handler" {
   integration_type   = "AWS_PROXY"
   integration_method = "POST"
 }
+
 
 resource "aws_apigatewayv2_route" "pardot_form_handler" {
   api_id = aws_apigatewayv2_api.lambda.id

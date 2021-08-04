@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+   <head>
+      <title>Pardot Form handler Test</title>
+       <script src="https://www.google.com/recaptcha/api.js"></script>
+      <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700" rel="stylesheet">
+      <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css" integrity="sha384-5sAR7xN1Nv6T6+dT2mhtzEpVJvfS3NScPQTrOxhwjIuvcA67KV2R5Jz6kr4abQsz" crossorigin="anonymous">
+      <style>
+         html, body {
+         display: flex;
+         justify-content: center;
+         height: 100%;
+         }
+         body, div, h1, form, input, p {
+         padding: 0;
+         margin: 0;
+         outline: none;
+         font-family: Roboto, Arial, sans-serif;
+         font-size: 16px;
+         color: #666;
+         }
+         .main-block {
+         display: flex;
+         }
+         .main-block div {
+         padding: 10px;
+         }
+      </style>
+   </head>
+   <body>
+      <div class="main-block">
+         <form method="POST" action="https://vpopxndhik.execute-api.us-east-1.amazonaws.com/pardot_lambda_stage/">
+            <div>
+               <label id="icon" for="name"><i class="fas fa-envelope"></i></label>
+               <input type="text" name="name" id="email" placeholder="Email" required/>
+            </div>
+            <div>
+               <label id="icon" for="name"><i class="fas fa-user"></i></label>
+               <input type="text" name="name" id="name" placeholder="Name" required/>
+            </div>
+            <div class="g-recaptcha" data-sitekey="6LerFZQbAAAM_mmg_J-OpkffuI0Uv10topj"></div>
+            <div class="btn-block">
+               <input type="submit" value="Submit">
+            </div>
+         </form>
+      </div>
+   </body>
+</html>

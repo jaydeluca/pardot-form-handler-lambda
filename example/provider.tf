@@ -1,7 +1,7 @@
 terraform {
   required_providers {
     aws = {
-      source = "hashicorp/aws"
+      source  = "hashicorp/aws"
       version = "3.52.0"
     }
   }
@@ -15,5 +15,6 @@ terraform {
 
 provider "aws" {
   region = "us-east-1"
-  allowed_account_ids = var.allowed_account_ids
+
+  allowed_account_ids = [var.aws_account]
 }

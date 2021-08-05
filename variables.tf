@@ -29,3 +29,9 @@ variable "completion_redirect_url" {
   description = "URL of where to redirect the user to after processing the submission."
   type        = string
 }
+
+variable "allowed_submission_origins" {
+  description = "Origins to allow submissions from"
+  type        = list(string)
+  default     = ["*"]
+}

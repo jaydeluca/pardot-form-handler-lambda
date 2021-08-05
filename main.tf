@@ -101,7 +101,7 @@ resource "aws_apigatewayv2_api" "lambda" {
   target = aws_lambda_function.pardot_form_handler.arn
 
   cors_configuration {
-    allow_origins = ["*"]
+    allow_origins = var.allowed_submission_origins
   }
 }
 

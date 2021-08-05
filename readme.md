@@ -26,7 +26,7 @@ module "pardot-form-handler" {
   completion_redirect_url    = "https://mysite.com/completed-form-landing-page"
 
   // optional, will default to allow from all ("*") if not set
-  allowed_submission_origins = "https://mysite.com"
+  allowed_submission_origins = ["https://mysite.com"]
 }
 ```
 

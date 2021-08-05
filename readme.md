@@ -30,9 +30,10 @@ module "pardot-form-handler" {
 }
 ```
 
-If you make changes to the lambda source dependencies, be sure to rebuild prior to applying the terraform so that it is included 
+If you make changes to the lambda function source dependencies (`lambda-source/package.json`), be sure to rebuild prior to applying the terraform so that it is included 
 in the zip file
 ```bash
+// run from inside the lambda-source directory
 yarn install
 ```
 

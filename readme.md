@@ -27,6 +27,9 @@ module "pardot-form-handler" {
 
   // optional, will default to allow from all ("*") if not set
   allowed_submission_origins = ["https://mysite.com"]
+
+  // optional, defaults to 5
+  timeout                    = 10
 }
 ```
 

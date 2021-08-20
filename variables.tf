@@ -35,3 +35,9 @@ variable "allowed_submission_origins" {
   type        = list(string)
   default     = ["*"]
 }
+
+variable "timeout" {
+  description = "Timeout for the lambda function"
+  type        = number
+  default     = 5
+}

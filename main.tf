@@ -72,6 +72,7 @@ resource "aws_lambda_function" "pardot_form_handler" {
   handler          = "index.handler"
   runtime          = "nodejs14.x"
   source_code_hash = data.archive_file.lambda_source.output_base64sha256
+  timeout          = var.timeout
 
   environment {
     variables = {

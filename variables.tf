@@ -12,7 +12,7 @@ variable "aws_account" {
 variable "function_name" {
   description = "Name of the lambda function"
   type        = string
-  default     = "pardot-email-handler"
+  default     = "pardot-form-handler"
 }
 
 variable "pardot_form_handler_url" {

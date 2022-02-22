@@ -4,7 +4,7 @@
   "description": "Lambda function to validate captcha for pardot form handlers",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "zip": "mkdir -p ../dist && zip -r -j ../dist/${npm_package_name}.zip index.js"
   },
   "keywords": [],
   "author": "Jay DeLuca",

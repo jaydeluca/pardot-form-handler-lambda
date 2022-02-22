@@ -26,7 +26,7 @@ provider "aws" {
 
 // Handler
 module "pardot-form-handler" {
-  source                  = "../"
+  source                  = "github.com/jaydeluca/pardot-form-handler-lambda?ref=v1.0.0"
   completion_redirect_url = var.completion_redirect_url
   google_recaptcha_secret = var.google_recaptcha_secret
   pardot_form_handler_url = var.pardot_form_handler_url

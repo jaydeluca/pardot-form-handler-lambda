@@ -10,10 +10,9 @@ form url, they can submit directly, bypassing your form and any validation entir
 
 
 ## Usage
-Clone and reference the module in your TF:
 ```hcl-terraform
 module "pardot-form-handler" {
-  source                     = "/location/of/module"
+  source                     = "github.com/jaydeluca/pardot-form-handler-lambda?ref=v1.0.0"
   aws_account                = "1234567890"
   
   // get this from google, implement captcha into your form client-side

@@ -10,7 +10,6 @@
   "author": "Jay DeLuca",
   "license": "MIT",
   "dependencies": {
-    "axios": "^0.21.1",
-    "querystring": "^0.2.1"
+    "axios": "^0.21.1"
   }
 }

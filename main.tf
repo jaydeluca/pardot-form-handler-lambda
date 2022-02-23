@@ -59,7 +59,7 @@ data "archive_file" "lambda_source" {
 resource "aws_s3_bucket_object" "pardot_lambda_source_object" {
   bucket = aws_s3_bucket.pardot_form_handler_lambda.id
 
-  key    = "${local.zip_name}"
+  key    = local.zip_name
   source = data.archive_file.lambda_source.output_path
 
   etag = filemd5(data.archive_file.lambda_source.output_path)

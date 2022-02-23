@@ -1,32 +1,23 @@
 'use strict'
 let axios = require('axios');
-let querystring = require('querystring');
 
 const FORM_HANDLER = process.env.PARDOT_FORM_HANDLER_URL
 const RECAPTCHA_SECRET = process.env.RECAPTCHA_SECRET
 const REDIRECT_URL = process.env.REDIRECT_URL
 
-// Unused headers?
-const headers = {
-  'Content-Type': 'application/json',
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': "Content-Type",
-  "Access-Control-Allow-Methods": "OPTIONS,POST"
-}
-
 async function post(url, payload, opts) {
   return axios.post(url, payload, { ...opts })
 }
 
-
 async function verifyRecaptcha(captchaResponse) {
   try {
+    const body = new URLSearchParams();
+    body.append("secret", RECAPTCHA_SECRET);
+    body.append("response", captchaResponse);
+
     const response = await post(
       'https://www.google.com/recaptcha/api/siteverify', 
-      querystring.stringify({
-        secret: RECAPTCHA_SECRET,
-        response: captchaResponse
-      }),
+      body,
       {
         headers: {
           "Content-Type": "application/x-www-form-urlencoded"
@@ -37,7 +28,7 @@ async function verifyRecaptcha(captchaResponse) {
     const { data } = response;
 
     if (!data || !data.success) {
-      console.error("Invalid Recpature");
+      console.error("Invalid Recaptcha");
       return false;
     }
 

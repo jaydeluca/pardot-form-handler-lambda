@@ -41,7 +41,6 @@ async function verifyRecaptcha(captchaResponse) {
 
 async function sendForm(formPayload) {
   try {
-    // Does the `data` response here never need to get back to the user?
     const data = await post(
       FORM_HANDLER, 
       formPayload, 
@@ -64,36 +63,37 @@ async function sendForm(formPayload) {
 }
 
 const Responses = {
-  Unauthorized: () => ({ statusCode: 401 }),
-  BadRequest: () => ({ statusCode: 400 }),
   Redirect: (Location) => ({ statusCode: 302, headers: { Location }})
 }
 
 async function proxyForm(event, _context) {
-  const buff = Buffer.from(event.body, 'base64');
-  const text = buff.toString('ascii');
-  const recaptchaPair = text.split('&').find(pair => pair.startsWith('g-recaptcha-response'));
-  
+  const recaptchaPair = Buffer.from(event.body, 'base64')
+    .toString('ascii')
+    .split('&')
+    .find(pair => pair.startsWith('g-recaptcha-response'));
+
   if (!recaptchaPair) {
-    // reCaptcha not provided at all
-    // maybe bad request?
-    return Errors.Unauthorized()
+    console.log("No Captcha provided, aborting and finishing redirect.")
+    return Responses.Redirect(REDIRECT_URL);
   }
-  
+
   const [_key, captchaResponse] = recaptchaPair.split("=");
   console.log("Provided reCaptcha value:", captchaResponse)
-  
+
   const isRecaptchaValid = await verifyRecaptcha(captchaResponse);
   if (!isRecaptchaValid) {
-    return Errors.Unauthorized()
+    console.log("Captcha failed, aborting and finishing redirect.")
+    return Responses.Redirect(REDIRECT_URL);
   }
 
   const formResponse = await sendForm(text);
   if (!formResponse) {
-    return Errors.BadRequest()
+    console.log("Error submitting to pardot, aborting and finishing redirect.")
+    return Responses.Redirect(REDIRECT_URL);
   }
 
-  return Responses.Redirect(REDIRECT_URL);
+  console.log("Successful submission. Redirecting.")
+  return Responses.Redirect(REDIRECT_URL)
 }
 
 exports.handler = async function handler(event, context) {

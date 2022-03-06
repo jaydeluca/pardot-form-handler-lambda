@@ -1,7 +1,3 @@
-locals {
-  zip_name = "${var.function_name}.zip"
-}
-
 terraform {
   required_providers {
     aws = {
@@ -52,14 +48,14 @@ resource "aws_s3_bucket" "pardot_form_handler_lambda" {
 data "archive_file" "lambda_source" {
   type = "zip"
 
-  source_dir  = "${path.module}/dist"
-  output_path = "${path.module}/dist/${local.zip_name}"
+  source_dir  = "${path.module}/lambda-source"
+  output_path = "${path.module}/lambda-source/lambda-source.zip"
 }
 
 resource "aws_s3_bucket_object" "pardot_lambda_source_object" {
   bucket = aws_s3_bucket.pardot_form_handler_lambda.id
 
-  key    = local.zip_name
+  key    = "lambda-source.zip"
   source = data.archive_file.lambda_source.output_path
 
   etag = filemd5(data.archive_file.lambda_source.output_path)

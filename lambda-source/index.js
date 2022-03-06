@@ -1,59 +1,50 @@
 'use strict'
 let axios = require('axios');
-let querystring = require('querystring');
 
 const FORM_HANDLER = process.env.PARDOT_FORM_HANDLER_URL
 const RECAPTCHA_SECRET = process.env.RECAPTCHA_SECRET
 const REDIRECT_URL = process.env.REDIRECT_URL
 
-const headers = {
-  'Content-Type': 'application/json',
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': "Content-Type",
-  "Access-Control-Allow-Methods": "OPTIONS,POST"
+async function post(url, payload, opts) {
+  return axios.post(url, payload, { ...opts })
 }
 
-exports.handler = async (event, context, callback) => {
-  console.log("Full event body", event.body);
-
-  let buff = Buffer.from(event.body, 'base64');
-  let text = buff.toString('ascii');
-
-  var keyValuePairs = text.split('&');
-  var json = {};
-
-  console.log("Parsing form");
-  for (var i = 0, len = keyValuePairs.length, tmp, key, value; i < len; i++) {
-    tmp = keyValuePairs[i].split('=');
-    key = decodeURIComponent(tmp[0]);
-    value = decodeURIComponent(tmp[1]);
-    if (key.search(/\[\]$/) != -1) {
-      tmp = key.replace(/\[\]$/, '');
-      json[tmp] = json[tmp] || [];
-      json[tmp].push(value);
-    } else {
-      json[key] = value;
-    }
-    console.log(`${key}: ${value}`);
-  }
-
-  let captchaResponse = json["g-recaptcha-response"];
-  console.log("Captcha Key: ", captchaResponse)
-
+async function verifyRecaptcha(captchaResponse) {
   try {
-    const res = await axios.post('https://www.google.com/recaptcha/api/siteverify', querystring.stringify({
-      secret: RECAPTCHA_SECRET,
-      response: captchaResponse
-    }), {
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded"
-      }
-    })
-    let result = await res.data
-    console.log("Captcha Result: ", result)
+    const body = new URLSearchParams();
+    body.append("secret", RECAPTCHA_SECRET);
+    body.append("response", captchaResponse);
 
-    if (result.success) {
-      const data = await axios.post(FORM_HANDLER, text, {
+    const response = await post(
+      'https://www.google.com/recaptcha/api/siteverify', 
+      body,
+      {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded"
+        }
+      }
+    )
+    console.log("Captcha Result: ", response);
+    const { data } = response;
+
+    if (!data || !data.success) {
+      console.error("Invalid Recaptcha");
+      return false;
+    }
+
+    return data;
+  } catch (err) {
+    console.error("Recaptcha Failure: ", err);
+    return false;
+  }
+}
+
+async function sendForm(formPayload) {
+  try {
+    const data = await post(
+      FORM_HANDLER, 
+      formPayload, 
+      {
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
           'Access-Control-Allow-Origin': '*',
@@ -62,18 +53,50 @@ exports.handler = async (event, context, callback) => {
           success_location: REDIRECT_URL,
           error_location: REDIRECT_URL
         }
-      })
-    }
+      }
+    )
+    return data;
   } catch (err) {
-    console.error("Error: ", err);
+    console.error("Form Error: ", err);
+    return false;
+  }
+}
+
+const Responses = {
+  Redirect: (Location) => ({ statusCode: 302, headers: { Location }})
+}
+
+async function proxyForm(event, _context) {
+  const recaptchaPair = Buffer.from(event.body, 'base64')
+    .toString('ascii')
+    .split('&')
+    .find(pair => pair.startsWith('g-recaptcha-response'));
+
+  if (!recaptchaPair) {
+    console.log("No Captcha provided, aborting and finishing redirect.")
+    return Responses.Redirect(REDIRECT_URL);
   }
 
-  let redirectURL = REDIRECT_URL;
-  var response = {
-    "statusCode": 302,
-    "headers": {
-      Location: redirectURL,
-    }
-  };
-  callback(null, response);
+  const [_key, captchaResponse] = recaptchaPair.split("=");
+  console.log("Provided reCaptcha value:", captchaResponse)
+
+  const isRecaptchaValid = await verifyRecaptcha(captchaResponse);
+  if (!isRecaptchaValid) {
+    console.log("Captcha failed, aborting and finishing redirect.")
+    return Responses.Redirect(REDIRECT_URL);
+  }
+
+  const formResponse = await sendForm(text);
+  if (!formResponse) {
+    console.log("Error submitting to pardot, aborting and finishing redirect.")
+    return Responses.Redirect(REDIRECT_URL);
+  }
+
+  console.log("Successful submission. Redirecting.")
+  return Responses.Redirect(REDIRECT_URL)
+}
+
+exports.handler = async function handler(event, context) {
+  console.log("Full event body", event.body);
+  return proxyForm(event, context);
 };

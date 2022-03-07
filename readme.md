@@ -46,13 +46,6 @@ terraform so that it is included in the zip file.
 > yarn install
 ```
 
-There is a provided script that will zip the JS into
-`./dist/pardot-form-handler.zip`
-
-```bash
-> npm run zip
-```
-
 Ensure you include [captcha](https://www.google.com/recaptcha/about/) in your
 form and set your `action` to your api gateway resource:
 
